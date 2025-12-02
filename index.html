@@ -12,17 +12,32 @@
         body {
             margin: 0;
             font-family: "Poppins", sans-serif;
-            background-color: #fff7ec;
+            background-image: url("https://lumaguide.sfo3.digitaloceanspaces.com/media/place_images/2025/07/27/google_place_ChIJCTFy4TiTlxIRlyabvGUrPJI_photo_1.jpg");
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
             color: #7a3b00;
         }
 
+        /* Capa semitransparente encima del fondo para que se lea bien */
+        .overlay {
+            background-color: rgba(255, 247, 236, 0.85);
+            min-height: 100vh;
+        }
+
         nav {
-            background-color: #ff7a00;
+            background-color: rgba(255, 122, 0, 0.95);
             padding: 15px 25px;
             display: flex;
             align-items: center;
             justify-content: space-between;
             box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        /* LOGO DE POPEYES */
+        nav img {
+            height: 50px;
+            margin-right: 15px;
         }
 
         nav h1 {
@@ -31,6 +46,8 @@
             font-size: 26px;
             font-weight: 800;
             letter-spacing: 1px;
+            display: flex;
+            align-items: center;
         }
 
         nav a {
@@ -103,9 +120,14 @@
 
 <body>
 
+<div class="overlay">
+
     <!-- NAVBAR -->
     <nav>
-        <h1>Popeyes – Stakeholders</h1>
+        <h1>
+            <img src="https://parque-corredor.com/wp-content/uploads/2025/08/POPEYES.png" alt="logo popeyes">
+            Popeyes – Stakeholders
+        </h1>
         <div>
             <a href="#">Inicio</a>
             <a href="#codigos">Códigos</a>
@@ -132,6 +154,8 @@
 
         </div>
     </div>
+
+</div>
 
 </body>
 </html>
