@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Solicitud y Aprobación de Vacaciones</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue:wght@400&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --brand-red: #E60012;
+      --brand-orange: #FF6B00;
+      --brand-yellow: #FFD200;
+      --brand-dark: #1A1A1A;
+      --brand-light: #FFF9F0;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(135deg, var(--brand-light) 0%, #fff5e6 100%);
+      color: var(--brand-dark);
+    }
+    .container {
+      width: 90%;
+      max-width: 1024px;
+      margin: 30px auto;
+      background: #fff;
+      border-radius: 20px;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.12);
+      overflow: hidden;
+      position: relative;
+    }
+    header {
+      background: var(--brand-red);
+      color: white;
+      padding: 20px;
+      text-align: center;
+      position: relative;
+    }
+    header::after {
+      content: '';
+      position: absolute;
+      bottom: -15px;
+      left: 0;
+      width: 100%;
+      height: 30px;
+      background: var(--brand-orange);
+      clip-path: polygon(0 0, 100% 0, 100% 100%, 0 60%);
+    }
+    h1 {
+      margin: 0;
+      font-family: 'Bebas Neue', cursive;
+      font-size: 2.8rem;
+      letter-spacing: 1.5px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+    .logo {
+      width: 80px; height: 80px;
+      background: url('https://upload.wikimedia.org/wikipedia/commons/8/81/Employee_icon.svg') no-repeat center;
+      background-size: contain;
+      position: absolute;
+      top: 10px; right: 20px;
+      filter: invert(1) brightness(2);
+      opacity: 0.7;
+    }
+
+    /* Roles */
+    .steps {
+      display: flex;
+      justify-content: center;
+      padding: 18px 10px;
+      background: #f8f8f8;
+      border-bottom: 1px solid #eee;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .role-card {
+      background: white;
+      padding: 12px 18px;
+      border-radius: 12px;
+      border: 2px solid #eee;
+      cursor: pointer;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.04);
+      transition: all 0.25s;
+    }
+    .role-card.selected {
+      border-color: var(--brand-orange);
+      transform: translateY(-4px);
+      box-shadow: 0 10px 30px rgba(255,107,0,0.15);
+      background: linear-gradient(180deg, rgba(255,107,0,0.04), #fff);
+    }
+    .role-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: var(--brand-orange);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+    }
+
+    /* Formato general */
+    .content { padding: 28px; }
+    .card {
+      background: #fff;
+      border-radius: 15px;
+      padding: 20px;
+      margin-bottom: 18px;
+      border: 2px solid #f1f1f1;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.04);
+    }
+    h2 {
+      color: var(--brand-red);
+      font-family: 'Bebas Neue', cursive;
+      font-size: 1.8rem;
+      margin-top: 0;
+    }
+    label { font-weight: bold; margin-top: 12px; display:block; color:#333; }
+    input, select, textarea {
+      width:100%; padding:12px; margin:8px 0 14px 0;
+      border-radius:10px; border:2px solid #ddd; font-size:1rem;
+    }
+    input:focus, select:focus, textarea:focus {
+      outline:none; border-color:var(--brand-orange);
+      box-shadow:0 0 0 3px rgba(255,107,0,0.12);
+    }
+    input[readonly] {
+      background: #f9f9f9;
+      color: #666;
+      cursor: not-allowed;
+    }
+    .btn {
+      background: var(--brand-orange);
+      color: white;
+      padding: 12px 26px;
+      border: none;
+      border-radius: 50px;
+      font-weight: bold;
+      font-size: 1.05rem;
+      cursor: pointer;
+      transition: all 0.25s;
+      box-shadow: 0 6px 18px rgba(255,107,0,0.18);
+    }
+    .btn:hover { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(255,107,0,0.22); }
+
+    .muted { color:#666; font-size:0.9rem; }
+
+    /* Popup */
+    .popup-error {
+      position: fixed;
+      top: 0; left:0; width:100%; height:100%;
+      background: rgba(0,0,0,0.65);
+      display:flex; align-items:center; justify-content:center;
+      z-index:1000; opacity:0; visibility:hidden;
+      transition:all 0.25s;
+    }
+    .popup-error.show { opacity:1; visibility:visible; }
+    .popup-content {
+      background:white; padding:24px; border-radius:16px;
+      width: 380px; text-align:center;
+      box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+      transform:scale(0.9); transition:transform 0.25s;
+    }
+    .popup-error.show .popup-content { transform:scale(1); }
+    .popup-icon { font-size:2.6rem; color:var(--brand-red); margin-bottom:8px; }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <header>
+      <div class="logo"></div>
+      <h1>Solicitudes de Vacaciones - RRHH</h1>
+    </header>
+
+    <div class="steps">
+      <div class="role-card selected" id="role-employee" onclick="selectRole('employee')">
+        <div class="role-icon">E</div>
+        <div><b>Empleado</b><br><span class="muted">Solicitar vacaciones</span></div>
+      </div>
+      <div class="role-card" id="role-admin" onclick="requestAdminAccess()">
+        <div class="role-icon">R</div>
+        <div><b>Administrador RRHH</b><br><span class="muted">Gestión de solicitudes</span></div>
+      </div>
+    </div>
+
+    <div class="content">
+      <div id="employee-panel" class="card">
+        <h2>Perfil: Empleado</h2>
+        <label for="emp-nombre">Nombre completo *</label>
+        <input id="emp-nombre" placeholder="Ej. Ana García" />
+        <label for="emp-dni">DNI / ID</label>
+        <input id="emp-dni" placeholder="Ej. 12345678" />
+        <label for="emp-depart">Departamento</label>
+        <input id="emp-depart" placeholder="Ej. Ingeniería" />
+        <label for="emp-saldo">Saldo (días)</label>
+        <input id="emp-saldo" type="number" readonly />
+
+        <button class="btn" onclick="empLogin()">Iniciar / Actualizar</button>
+
+        <hr />
+        <label for="fecha-inicio">Fecha inicio *</label>
+        <input id="fecha-inicio" type="date" />
+        <label for="fecha-fin">Fecha fin *</label>
+        <input id="fecha-fin" type="date" />
+        <label for="motivo">Motivo (opcional)</label>
+        <textarea id="motivo" rows="3"></textarea>
+
+        <button class="btn" onclick="enviarSolicitud()">Enviar Solicitud</button>
+      </div>
+
+      <div id="admin-panel" class="card" style="display:none;">
+        <h2>Panel de RRHH</h2>
+        <p class="muted">Aquí puedes aprobar o rechazar solicitudes y ajustar saldos.</p>
+        <div id="requests"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Popup -->
+  <div class="popup-error" id="popup-error">
+    <div class="popup-content">
+      <div class="popup-icon" id="popup-icon">⚠️</div>
+      <div id="popup-title" style="font-weight:bold; font-size:1.2rem;"></div>
+      <div id="popup-message" style="margin-top:6px; color:#555;"></div>
+      <button class="btn" style="margin-top:10px;" onclick="cerrarPopup()">Entendido</button>
+    </div>
+  </div>
+
+  <script>
+    const ADMIN_PASSWORD = "admin1234";
+    const LS_EMPLOYEES = "vacaciones_empleados";
+    const LS_REQUESTS = "vacaciones_solicitudes";
+
+    function mostrarPopup(titulo, mensaje) {
+      document.getElementById("popup-title").textContent = titulo;
+      document.getElementById("popup-message").textContent = mensaje;
+      document.getElementById("popup-error").classList.add("show");
+    }
+    function cerrarPopup() {
+      document.getElementById("popup-error").classList.remove("show");
+    }
+
+    function getEmployees() {
+      return JSON.parse(localStorage.getItem(LS_EMPLOYEES) || "{}");
+    }
+    function saveEmployees(data) {
+      localStorage.setItem(LS_EMPLOYEES, JSON.stringify(data));
+    }
+
+    function getRequests() {
+      return JSON.parse(localStorage.getItem(LS_REQUESTS) || "[]");
+    }
+    function saveRequests(data) {
+      localStorage.setItem(LS_REQUESTS, JSON.stringify(data));
+    }
+
+    let currentEmployee = null;
+
+    function empLogin() {
+      const nombre = document.getElementById("emp-nombre").value.trim();
+      const dni = document.getElementById("emp-dni").value.trim();
+      const dep = document.getElementById("emp-depart").value.trim();
+      if (!nombre) {
+        mostrarPopup("Error", "Debes ingresar tu nombre.");
+        return;
+      }
+      const employees = getEmployees();
+      const key = dni || nombre.toLowerCase();
+      if (!employees[key]) {
+        employees[key] = { nombre, dni, dep, saldo: 30 };
+        mostrarPopup("Bienvenido", "Perfil creado con saldo inicial de 30 días.");
+      } else {
+        mostrarPopup("Bienvenido", "Perfil cargado correctamente.");
+      }
+      saveEmployees(employees);
+      currentEmployee = employees[key];
+      document.getElementById("emp-saldo").value = currentEmployee.saldo;
+    }
+
+    function enviarSolicitud() {
+      if (!currentEmployee) {
+        mostrarPopup("Error", "Primero inicia sesión como empleado.");
+        return;
+      }
+      const inicio = document.getElementById("fecha-inicio").value;
+      const fin = document.getElementById("fecha-fin").value;
+      if (!inicio || !fin) {
+        mostrarPopup("Error", "Completa las fechas.");
+        return;
+      }
+      const dias = (new Date(fin) - new Date(inicio)) / (1000*60*60*24) + 1;
+      if (dias <= 0) {
+        mostrarPopup("Error", "Fechas inválidas.");
+        return;
+      }
+      if (dias > currentEmployee.saldo) {
+        mostrarPopup("Error", "Saldo insuficiente.");
+        return;
+      }
+
+      const motivo = document.getElementById("motivo").value;
+      const requests = getRequests();
+      requests.push({
+        id: Date.now(),
+        empleado: currentEmployee.nombre,
+        dni: currentEmployee.dni,
+        dep: currentEmployee.dep,
+        inicio,
+        fin,
+        dias,
+        motivo,
+        estado: "Pendiente"
+      });
+      saveRequests(requests);
+      mostrarPopup("Solicitud enviada", "Tu solicitud fue registrada correctamente.");
+      document.getElementById("fecha-inicio").value = "";
+      document.getElementById("fecha-fin").value = "";
+      document.getElementById("motivo").value = "";
+    }
+
+    function requestAdminAccess() {
+      const clave = prompt("Ingrese la contraseña de administrador:");
+      if (clave === ADMIN_PASSWORD) {
+        selectRole("admin");
+      } else if (clave) {
+        mostrarPopup("Acceso denegado", "Contraseña incorrecta.");
+      }
+    }
+
+    function selectRole(role) {
+      const empCard = document.getElementById("role-employee");
+      const admCard = document.getElementById("role-admin");
+      const empPanel = document.getElementById("employee-panel");
+      const admPanel = document.getElementById("admin-panel");
+      if (role === "employee") {
+        empCard.classList.add("selected");
+        admCard.classList.remove("selected");
+        empPanel.style.display = "block";
+        admPanel.style.display = "none";
+      } else {
+        empCard.classList.remove("selected");
+        admCard.classList.add("selected");
+        empPanel.style.display = "none";
+        admPanel.style.display = "block";
+        renderAdminPanel();
+      }
+    }
+
+    function renderAdminPanel() {
+      const div = document.getElementById("requests");
+      div.innerHTML = "";
+      const data = getRequests();
+      const employees = getEmployees();
+      if (data.length === 0) {
+        div.innerHTML = "<p>No hay solicitudes.</p>";
+        return;
+      }
+      data.forEach((r) => {
+        const box = document.createElement("div");
+        box.style.border = "2px solid #eee";
+        box.style.borderRadius = "10px";
+        box.style.padding = "10px";
+        box.style.marginBottom = "10px";
+        box.innerHTML = `
+          <b>${r.empleado}</b> (${r.dep})<br>
+          ${r.inicio} → ${r.fin} (${r.dias} días)<br>
+          Motivo: ${r.motivo || "—"}<br>
+          <b>Estado:</b> ${r.estado}<br>
+          <button class="btn" style="margin-top:5px;" onclick="aprobar(${r.id})">Aprobar</button>
+          <button class="btn" style="margin-top:5px; background:#f33;" onclick="rechazar(${r.id})">Rechazar</button>
+        `;
+        div.appendChild(box);
+      });
+    }
+
+    function aprobar(id) {
+      const requests = getRequests();
+      const r = requests.find((x) => x.id === id);
+      if (!r) return;
+      const employees = getEmployees();
+      const key = r.dni || r.empleado.toLowerCase();
+      if (employees[key]) {
+        employees[key].saldo = Math.max(0, employees[key].saldo - r.dias);
+        saveEmployees(employees);
+      }
+      r.estado = "Aprobada";
+      saveRequests(requests);
+      mostrarPopup("Aprobada", `Solicitud de ${r.empleado} aprobada.`);
+      renderAdminPanel();
+    }
+
+    function rechazar(id) {
+      const requests = getRequests();
+      const r = requests.find((x) => x.id === id);
+      if (!r) return;
+      r.estado = "Rechazada";
+      saveRequests(requests);
+      mostrarPopup("Rechazada", `Solicitud de ${r.empleado} rechazada.`);
+      renderAdminPanel();
+    }
+
+    window.addEventListener("load", () => {
+      const emp = getEmployees();
+      document.getElementById("emp-saldo").value = 30;
+    });
+  </script>
+</body>
+</html>
+

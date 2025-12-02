@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal de Integración - Popeyes → Banco</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #fafafa;
+            color: #333;
+        }
+
+        header {
+            background: #f26522;
+            color: #fff;
+            padding: 20px;
+            text-align: center;
+            font-size: 22px;
+            font-weight: bold;
+        }
+
+        #container {
+            max-width: 1100px;
+            margin: 20px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            color: #d35400;
+        }
+
+        button {
+            background-color: #f26522;
+            color: white;
+            border: none;
+            padding: 12px 18px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px 0;
+        }
+
+        button:hover {
+            background-color: #d35400;
+        }
+
+        .section {
+            margin-bottom: 35px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+        }
+
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+
+        th {
+            background: #f26522;
+            color: white;
+            padding: 10px;
+        }
+
+        td {
+            padding: 10px;
+        }
+
+        .log-box {
+            background: #fff7f2;
+            border: 1px solid #f7c8a7;
+            padding: 12px;
+            height: 160px;
+            overflow-y: scroll;
+            font-size: 14px;
+        }
+
+        .success { color: green; }
+        .error { color: red; }
+        .info { color: #8a4b08; }
+
+        #overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.4);
+            backdrop-filter: blur(3px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #modal {
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            width: 380px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.2);
+        }
+    </style>
+</head>
+
+<body>
+
+<header>Portal de Integración — Popeyes Operations → Banco</header>
+
+<div id="container">
+
+    <!-- SECCIÓN 1 -->
+    <div class="section">
+        <h2>Solicitudes de Pago enviadas por Popeyes</h2>
+        <p>El banco puede aprobar, rechazar o revisar detalles.</p>
+        <button onclick="generarSolicitudPago()">Simular nueva solicitud desde Popeyes</button>
+
+        <table id="tablaPagos">
+            <tr>
+                <th>ID</th>
+                <th>Proveedor</th>
+                <th>Monto</th>
+                <th>Acciones</th>
+            </tr>
+        </table>
+    </div>
+
+    <!-- SECCIÓN 2 -->
+    <div class="section">
+        <h2>Solicitudes de Financiamiento de Popeyes</h2>
+        <p>Popeyes envía solicitudes, y el banco las evalúa.</p>
+        <button onclick="generarSolicitudFinanciamiento()">Nueva Solicitud de Financiamiento</button>
+
+        <table id="tablaFinanciamiento">
+            <tr>
+                <th>ID</th>
+                <th>Monto Solicitado</th>
+                <th>Tasa</th>
+                <th>Acción</th>
+            </tr>
+        </table>
+    </div>
+
+    <!-- SECCIÓN 3 -->
+    <div class="section">
+        <h2>Documentos Enviados por Popeyes</h2>
+        <button onclick="simularDocumento()">Simular documento recibido</button>
+
+        <table id="tablaDocs">
+            <tr>
+                <th>ID</th>
+                <th>Tipo</th>
+                <th>Acción</th>
+            </tr>
+        </table>
+    </div>
+
+    <!-- LOG -->
+    <div class="section">
+        <h2>Actividad del Portal</h2>
+        <div class="log-box" id="log"></div>
+    </div>
+
+</div>
+
+<div id="overlay">
+    <div id="modal">
+        <h3 id="modalTitle"></h3>
+        <p id="modalBody"></p>
+        <button onclick="cerrarModal()">Cerrar</button>
+    </div>
+</div>
+
+<script>
+    let contadorPagos = 1;
+    let contadorFinanc = 1;
+    let contadorDocs = 1;
+
+    function log(msg, type="info") {
+        let box = document.getElementById("log");
+        let entry = document.createElement("div");
+        entry.className = type;
+        entry.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+        box.appendChild(entry);
+        box.scrollTop = box.scrollHeight;
+    }
+
+    function abrirModal(titulo, texto) {
+        document.getElementById("modalTitle").textContent = titulo;
+        document.getElementById("modalBody").textContent = texto;
+        document.getElementById("overlay").style.display = "flex";
+    }
+
+    function cerrarModal() {
+        document.getElementById("overlay").style.display = "none";
+    }
+
+    /* ═══════════════════════════════════
+       SECCIÓN PAGOS
+    ═══════════════════════════════════ */
+    function generarSolicitudPago() {
+        let id = contadorPagos++;
+        let proveedor = "Proveedor " + (Math.floor(Math.random()*5)+1);
+        let monto = (Math.random()*5000 + 500).toFixed(2);
+
+        let tabla = document.getElementById("tablaPagos");
+        let fila = tabla.insertRow(-1);
+
+        fila.innerHTML = `
+            <td>${id}</td>
+            <td>${proveedor}</td>
+            <td>$${monto}</td>
+            <td>
+                <button onclick="aprobarPago(${id})">Aprobar</button>
+                <button onclick="rechazarPago(${id})">Rechazar</button>
+                <button onclick="abrirModal('Detalles del Pago', 'Popeyes envió una solicitud de pago al proveedor ${proveedor} por $${monto}.')">Ver</button>
+            </td>
+        `;
+
+        log(`Popeyes envió solicitud de pago #${id} — Proveedor: ${proveedor}, Monto: $${monto}`, "info");
+    }
+
+    function aprobarPago(id) {
+        log(`Banco aprobó el pago #${id}`, "success");
+        abrirModal("Pago Aprobado", `La solicitud de pago #${id} fue aprobada por el Banco.`);
+    }
+
+    function rechazarPago(id) {
+        log(`Banco rechazó el pago #${id}`, "error");
+        abrirModal("Pago Rechazado", `La solicitud de pago #${id} fue rechazada por el Banco.`);
+    }
+
+    /* ═══════════════════════════════════
+       SECCIÓN FINANCIAMIENTO
+    ═══════════════════════════════════ */
+    function generarSolicitudFinanciamiento() {
+        let id = contadorFinanc++;
+        let monto = (Math.random()*20000 + 10000).toFixed(2);
+        let tasa = (Math.random()*5 + 5).toFixed(2);
+
+        let tabla = document.getElementById("tablaFinanciamiento");
+        let fila = tabla.insertRow(-1);
+
+        fila.innerHTML = `
+            <td>${id}</td>
+            <td>$${monto}</td>
+            <td>${tasa}%</td>
+            <td>
+                <button onclick="evaluarFinanciamiento(${id}, ${monto})">Evaluar</button>
+            </td>
+        `;
+
+        log(`Popeyes solicitó financiamiento #${id} por $${monto} (tasa estimada ${tasa}%)`, "info");
+    }
+
+    function evaluarFinanciamiento(id, monto) {
+        let aprobado = Math.random() > 0.35;
+
+        if (aprobado) {
+            log(`Banco aprobó financiamiento #${id} por $${monto}`, "success");
+            abrirModal("Financiamiento Aprobado", `El Banco aprobó el financiamiento por $${monto}.`);
+        } else {
+            log(`Banco rechazó financiamiento #${id} por $${monto}`, "error");
+            abrirModal("Financiamiento Rechazado", `El Banco rechazó la solicitud de financiamiento.`);
+        }
+    }
+
+    /* ═══════════════════════════════════
+       SECCIÓN DOCUMENTOS
+    ═══════════════════════════════════ */
+    function simularDocumento() {
+        let id = contadorDocs++;
+        let tipos = ["Factura", "Orden de compra", "Contrato", "Comprobante"];
+        let tipo = tipos[Math.floor(Math.random()*tipos.length)];
+
+        let tabla = document.getElementById("tablaDocs");
+        let fila = tabla.insertRow(-1);
+
+        fila.innerHTML = `
+            <td>${id}</td>
+            <td>${tipo}</td>
+            <td><button onclick="descargarDoc(${id}, '${tipo}')">Descargar</button></td>
+        `;
+
+        log(`Popeyes envió documento #${id} (${tipo}) al Banco`, "info");
+    }
+
+    function descargarDoc(id, tipo) {
+        log(`Banco descargó documento #${id} (${tipo})`, "success");
+        abrirModal("Documento Descargado", `Se descargó el documento #${id} (${tipo}).`);
+    }
+</script>
+
+</body>
+</html>

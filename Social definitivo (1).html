@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Popeyes Perú — Comunidad & Impacto Social</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<style>
+:root{
+  --orange:#FF6B00;
+  --red:#E31837;
+  --bg:#FFF7F0;
+  --card:#ffffff;
+  --text:#222;
+  --muted:#666;
+  --success:#10b981;
+  --info:#3b82f6;
+  --warning:#f59e0b;
+  --shadow-sm:0 1px 3px rgba(0,0,0,0.08);
+  --shadow-md:0 10px 30px rgba(0,0,0,0.06);
+  --shadow-lg:0 20px 50px rgba(0,0,0,0.12);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:"Poppins",sans-serif;
+  background:linear-gradient(135deg,#fff1e6,#fff8f3);
+  color:var(--text);
+  padding:20px;
+  min-height:100vh;
+}
+.container{
+  max-width:1350px;
+  margin:auto;
+  background:var(--card);
+  border-radius:20px;
+  box-shadow:var(--shadow-lg);
+  overflow:hidden;
+}
+header{
+  background:linear-gradient(90deg,var(--red),var(--orange));
+  color:white;
+  padding:24px 34px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  flex-wrap:wrap;
+  gap:16px;
+}
+header h1{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:2.3rem;
+  letter-spacing:2px;
+}
+.user-badge{
+  background:rgba(255,255,255,0.22);
+  padding:10px 20px;
+  border-radius:30px;
+  font-weight:600;
+  backdrop-filter:blur(10px);
+}
+.wrap{
+  padding:34px;
+  display:grid;
+  grid-template-columns:420px 1fr;
+  gap:32px;
+}
+.card{
+  background:white;
+  padding:28px;
+  border-radius:18px;
+  box-shadow:var(--shadow-md);
+  border:1px solid #fdf2e9;
+  transition:transform .3s,box-shadow .3s;
+}
+.card:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg)}
+h2{
+  font-family:'Bebas Neue',sans-serif;
+  color:var(--red);
+  font-size:1.6rem;
+  letter-spacing:1.4px;
+  margin-bottom:16px;
+}
+.btn{
+  padding:13px 22px;
+  border:none;
+  background:var(--orange);
+  color:white;
+  font-weight:600;
+  border-radius:12px;
+  cursor:pointer;
+  box-shadow:0 8px 28px rgba(255,107,0,0.22);
+  transition:all .3s;
+  width:100%;
+  margin-bottom:12px;
+}
+.btn:hover{background:#ff7a20;transform:translateY(-3px)}
+.btn.small{padding:9px 16px;font-size:13px;width:auto}
+.btn.ghost{background:transparent;border:2px solid #eee;color:#555}
+.btn.ghost:hover{background:#fdf2e9}
+table{width:100%;border-collapse:collapse;margin-top:14px}
+th{background:var(--red);color:white;padding:14px;font-weight:600}
+td{padding:12px 10px;border-bottom:1px solid #ffe8d9;text-align:center}
+tr:hover{background:#fff9f5}
+.log{
+  max-height:560px;
+  overflow:auto;
+  margin-top:20px;
+  padding-top:18px;
+  border-top:2px dashed #ffb084;
+}
+.log-entry{
+  padding:14px 18px;
+  background:#fffaf7;
+  border-radius:12px;
+  margin-bottom:12px;
+  border-left:5px solid #ddd;
+  animation:fadeIn .5s ease-out;
+  box-shadow:var(--shadow-sm);
+}
+.log-entry.success{border-left-color:var(--success)}
+.log-entry.info{border-left-color:var(--info)}
+.log-entry.warning{border-left-color:var(--warning)}
+.log-entry .time{font-size:11px;color:#999;margin-bottom:6px}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+#modal{
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.6);
+  justify-content:center;
+  align-items:center;
+  z-index:9999;
+  backdrop-filter:blur(6px);
+}
+.modal-card{
+  background:white;
+  width:90%;
+  max-width:600px;
+  border-radius:18px;
+  padding:34px;
+  box-shadow:0 30px 90px rgba(0,0,0,0.3);
+  animation:pop .35s ease-out;
+  max-height:90vh;
+  overflow-y:auto;
+}
+@keyframes pop{from{transform:scale(0.92);opacity:0}to{transform:scale(1);opacity:1}}
+
+.form-group{margin-bottom:18px}
+label{display:block;margin-bottom:6px;font-weight:600;color:#444;font-size:14px}
+input, select, textarea{
+  width:100%;
+  padding:12px 14px;
+  border:2px solid #eee;
+  border-radius:10px;
+  font-family:'Poppins',sans-serif;
+  font-size:14px;
+  transition:border .3s;
+}
+input:focus, select:focus, textarea:focus{
+  outline:none;
+  border-color:var(--orange);
+  box-shadow:0 0 0 3px rgba(255,107,0,0.1);
+}
+.stats-grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:16px;
+  margin:20px 0;
+}
+.stat{
+  background:linear-gradient(135deg,#fff1e6,#ffffff);
+  padding:18px;
+  border-radius:14px;
+  text-align:center;
+  border:1px solid #ffd4b3;
+  box-shadow:var(--shadow-sm);
+}
+.stat .value{font-size:2.1rem;font-weight:700;color:var(--red);margin:8px 0}
+.stat .label{font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:0.8px}
+
+@media(max-width:960px){
+  .wrap{grid-template-columns:1fr}
+  .stats-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <div>
+      <h1>Popeyes Comunidad</h1>
+      <div style="font-size:1rem;opacity:0.95">Programa de Responsabilidad Social 2025</div>
+    </div>
+    <div class="user-badge">Stakeholder: <strong>Comunidad Peruana</strong></div>
+  </header>
+
+  <div class="wrap">
+    <!-- Panel izquierdo -->
+    <aside>
+      <div class="card">
+        <h2>Acciones de Impacto</h2>
+        <button class="btn" onclick="abrirModalDonacion()">Registrar Donación</button>
+        <button class="btn" onclick="abrirModalBeca()">Otorgar Beca Estudiantil</button>
+        <button class="btn" onclick="abrirModalVoluntariado()">Registrar Voluntariado</button>
+        <button class="btn ghost" onclick="generarReporteImpacto()">Generar Reporte Anual</button>
+      </div>
+
+      <div class="card" style="margin-top:24px">
+        <h2>Indicadores 2025</h2>
+        <div class="stats-grid">
+          <div class="stat"><div class="value" id="donaciones">0</div><div class="label">Donaciones</div></div>
+          <div class="stat"><div class="value" id="personas">0</div><div class="label">Personas Beneficiadas</div></div>
+          <div class="stat"><div class="value" id="becas">0</div><div class="label">Becas Otorgadas</div></div>
+          <div class="stat"><div class="value" id="horas">0</div><div class="label">Horas Voluntariado</div></div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:24px">
+        <h2>Documentos Emitidos</h2>
+        <table id="tablaDocs">
+          <tr><th>ID</th><th>Tipo</th><th>Acción</th></tr>
+        </table>
+      </div>
+    </aside>
+
+    <!-- Área principal -->
+    <main class="card">
+      <h2>Registro de Actividades Sociales</h2>
+      <div class="log" id="log"></div>
+    </main>
+  </div>
+</div>
+
+<!-- Modal Principal -->
+<div id="modal" onclick="if(event.target===this) cerrarModal()">
+  <div class="modal-card">
+    <h3 id="modalTitle" style="color:var(--red);margin-bottom:16px"></h3>
+    <div id="modalBody"></div>
+  </div>
+</div>
+
+<script>
+const { jsPDF } = window.jspdf;
+let docID = 1;
+let stats = {
+  donaciones: 0,
+  personas: 0,
+  becas: 0,
+  horas: 0
+};
+
+function log(msg, tipo = "info") {
+  const box = document.getElementById("log");
+  const div = document.createElement("div");
+  div.className = `log-entry ${tipo}`;
+  div.innerHTML = `<span class="time">${new Date().toLocaleTimeString()}</span><div>${msg}</div>`;
+  box.prepend(div);
+  actualizarStats();
+}
+
+function actualizarStats() {
+  document.getElementById("donaciones").textContent = stats.donaciones;
+  document.getElementById("personas").textContent = new Intl.NumberFormat("es-PE").format(stats.personas);
+  document.getElementById("becas").textContent = stats.becas;
+  document.getElementById("horas").textContent = stats.horas;
+}
+
+function abrirModal(titulo, contenido) {
+  document.getElementById("modalTitle").textContent = titulo;
+  document.getElementById("modalBody").innerHTML = contenido;
+  document.getElementById("modal").style.display = "flex";
+}
+
+function cerrarModal() {
+  document.getElementById("modal").style.display = "none";
+}
+
+/* ====================== DONACIÓN ====================== */
+function abrirModalDonacion() {
+  abrirModal("Registrar Nueva Donación", `
+    <div class="form-group">
+      <label>Institución Beneficiaria</label>
+      <input type="text" id="instDonacion" placeholder="Ej: Hogar de Niños San Juan" required>
+    </div>
+    <div class="form-group">
+      <label>Monto Donado (S/)</label>
+      <input type="number" id="montoDonacion" min="1000" placeholder="Ej: 12500" required>
+    </div>
+    <div class="form-group">
+      <label>Personas Beneficiadas</label>
+      <input type="number" id="personasDonacion" min="10" placeholder="Ej: 180" required>
+    </div>
+    <div style="text-align:right;margin-top:20px">
+      <button class="btn" onclick="procesarDonacion()">Generar Certificado y Registrar</button>
+    </div>
+  `);
+}
+
+window.procesarDonacion = function() {
+  const inst = document.getElementById("instDonacion").value.trim();
+  const monto = parseInt(document.getElementById("montoDonacion").value);
+  const personas = parseInt(document.getElementById("personasDonacion").value);
+
+  if (!inst || monto < 1000 || personas < 10) {
+    alert("Completa todos los campos correctamente");
+    return;
+  }
+
+  stats.donaciones++;
+  stats.personas += personas;
+
+  const id = docID++;
+  document.getElementById("tablaDocs").innerHTML += 
+    `<tr><td>${id}</td><td>Certificado Donación</td>
+     <td><button class="btn small" onclick="descargarDonacion(${id},'${inst}',${monto},${personas})">PDF</button></td></tr>`;
+
+  log(`Donación registrada: S/ ${monto.toLocaleString()} a ${inst} – ${personas} beneficiados`, "success");
+  cerrarModal();
+};
+
+function descargarDonacion(id, inst, monto, personas) {
+  const doc = new jsPDF();
+  doc.setFontSize(24);
+  doc.setTextColor(227,24,55);
+  doc.text("CERTIFICADO DE DONACIÓN", 105, 60, null, null, "center");
+  doc.setFontSize(13);
+  doc.setTextColor(0);
+  doc.text(`Popeyes Perú certifica haber donado:`, 30, 90);
+  doc.setFontSize(20);
+  doc.setTextColor(227,24,55);
+  doc.text(`S/ ${monto.toLocaleString('es-PE')}`, 105, 110, null, null, "center");
+  doc.setFontSize(12);
+  doc.setTextColor(0);
+  doc.text(`A favor de: ${inst}`, 30, 130);
+  doc.text(`Beneficiando a ${personas} personas`, 30, 140);
+  doc.text(`Fecha: ${new Date().toLocaleDateString("es-PE")}`, 30, 160);
+  doc.text(`ID: DON-2025-${String(id).padStart(4,'0')}`, 30, 170);
+  doc.line(40, 200, 170, 200);
+  doc.setFontSize(11);
+  doc.text("Dirección de RSE - Popeyes Perú", 105, 210, null, null, "center");
+
+  doc.save(`Certificado_Donacion_${id}_${inst.replace(/[^a-zA-Z0-9]/g,'_')}.pdf`);
+  log(`Certificado de donación #${id} descargado`, "success");
+}
+
+/* ====================== BECA ====================== */
+function abrirModalBeca() {
+  abrirModal("Otorgar Beca Estudiantil", `
+    <div class="form-group">
+      <label>Nombre Completo del Becario</label>
+      <input type="text" id="nombreBeca" placeholder="Ej: Ana María Torres Quispe" required>
+    </div>
+    <div class="form-group">
+      <label>Carrera o Programa</label>
+      <select id="carreraBeca">
+        <option>Gastronomía y Alta Cocina</option>
+        <option>Administración de Empresas</option>
+        <option>Ingeniería de Alimentos</option>
+        <option>Nutrición y Dietética</option>
+        <option>Técnico en Panadería y Pastelería</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Institución Educativa</label>
+      <input type="text" id="institutoBeca" placeholder="Ej: Le Cordon Bleu Perú">
+    </div>
+    <div style="text-align:right;margin-top:20px">
+      <button class="btn" onclick="procesarBeca()">Generar Carta Oficial</button>
+    </div>
+  `);
+}
+
+window.procesarBeca = function() {
+  const nombre = document.getElementById("nombreBeca").value.trim();
+  const carrera = document.getElementById("carreraBeca").value;
+  const instituto = document.getElementById("institutoBeca").value.trim() || "Institución aliada";
+
+  if (!nombre) {
+    alert("Ingresa el nombre del becario");
+    return;
+  }
+
+  stats.becas++;
+  stats.personas++;
+
+  const id = docID++;
+  document.getElementById("tablaDocs").innerHTML += 
+    `<tr><td>${id}</td><td>Carta de Beca</td>
+     <td><button class="btn small" onclick="descargarBeca(${id},'${nombre}','${carrera}','${instituto}')">PDF</button></td></tr>`;
+
+  log(`Beca otorgada a ${nombre} – ${carrera}`, "info");
+  cerrarModal();
+};
+
+function descargarBeca(id, nombre, carrera, instituto) {
+  const doc = new jsPDF();
+  doc.setFontSize(22);
+  doc.setTextColor(227,24,55);
+  doc.text("CARTA OFICIAL DE BECA", 105, 60, null, null, "center");
+  doc.setFontSize(12);
+  doc.setTextColor(0);
+  doc.text(`Lima, ${new Date().toLocaleDateString("es-PE")}`, 180, 80, null, null, "right");
+  doc.text(`Estimado/a ${nombre},`, 30, 100);
+  doc.setFontSize(11);
+  const texto = [
+    "Tenemos el agrado de comunicarle que ha sido seleccionado/a para recibir la",
+    "BECA ACADÉMICA POPEYES 2025 en la carrera de",
+    `${carrera}`,
+    `en ${instituto}.`,
+    "",
+    "Esta beca cubre el 100% de matrícula, pensión y materiales por toda la duración del programa.",
+    "¡Felicitaciones por tu talento y dedicación!"
+  ];
+  doc.text(texto, 30, 110);
+  doc.text(`ID Beca: BEC-2025-${String(id).padStart(4,'0')}`, 30, 170);
+  doc.line(40, 200, 170, 200);
+  doc.text("Dirección Académica y RSE", 105, 210, null, null, "center");
+
+  doc.save(`Beca_${nombre.split(" ")[0]}_${carrera.split(" ")[0]}_2025.pdf`);
+  log(`Carta de beca descargada para ${nombre}`, "info");
+}
+
+/* ====================== VOLUNTARIADO ====================== */
+function abrirModalVoluntariado() {
+  abrirModal("Registrar Voluntariado", `
+    <div class="form-group">
+      <label>Actividad Realizada</label>
+      <input type="text" id="actividadVol" placeholder="Ej: Cocina comunitaria en Villa El Salvador">
+    </div>
+    <div class="form-group">
+      <label>Horas de Voluntariado</label>
+      <input type="number" id="horasVol" min="10" max="200" value="40">
+    </div>
+    <div style="text-align:right;margin-top:20px">
+      <button class="btn" onclick="procesarVoluntariado()">Generar Constancia</button>
+    </div>
+  `);
+}
+
+window.procesarVoluntariado = function() {
+  const actividad = document.getElementById("actividadVol").value.trim() || "Actividad de voluntariado corporativo";
+  const horas = parseInt(document.getElementById("horasVol").value);
+
+  if (horas < 10) {
+    alert("Mínimo 10 horas");
+    return;
+  }
+
+  stats.horas += horas;
+
+  const id = docID++;
+  document.getElementById("tablaDocs").innerHTML += 
+    `<tr><td>${id}</td><td>Constancia Voluntariado</td>
+     <td><button class="btn small" onclick="descargarVoluntariado(${id},'${actividad}',${horas})">PDF</button></td></tr>`;
+
+  log(`Voluntariado registrado: ${actividad} – ${horas} horas`, "warning");
+  cerrarModal();
+};
+
+function descargarVoluntariado(id, actividad, horas) {
+  const doc = new jsPDF();
+  doc.setFontSize(24);
+  doc.setTextColor(227,24,55);
+  doc.text("CONSTANCIA DE VOLUNTARIADO", 105, 65, null, null, "center");
+  doc.setFontSize(12);
+  doc.text("Certificamos que el equipo de Popeyes Perú participó en:", 30, 90);
+  doc.setFontSize(14);
+  doc.text(actividad, 105, 105, null, null, "center");
+  doc.setFontSize(12);
+  doc.text(`Total de horas: ${horas} horas`, 30, 125);
+  doc.text(`Fecha: ${new Date().toLocaleDateString("es-PE")}`, 30, 135);
+  doc.text(`ID: VOL-2025-${String(id).padStart(4,'0')}`, 30, 145);
+  doc.line(40, 180, 170, 180);
+  doc.text("Coordinación de Voluntariado", 105, 190, null, null, "center");
+
+  doc.save(`Constancia_Voluntariado_${id}.pdf`);
+  log(`Constancia de voluntariado descargada`, "warning");
+}
+
+/* ====================== REPORTE ANUAL ====================== */
+function generarReporteImpacto() {
+  const doc = new jsPDF("l", "mm", "a4");
+
+  doc.setFontSize(28);
+  doc.setTextColor(227,24,55);
+  doc.text("REPORTE DE IMPACTO SOCIAL 2025", 148, 55, null, null, "center");
+
+  doc.setFontSize(14);
+  doc.setTextColor(0);
+  doc.text(`Generado el ${new Date().toLocaleDateString("es-PE")}`, 148, 70, null, null, "center");
+
+  const datos = [
+    ["Indicador", "Total 2025", "Detalles"],
+    ["Donaciones Realizadas", stats.donaciones, "Monetarias e in-kind"],
+    ["Personas Beneficiadas", new Intl.NumberFormat("es-PE").format(stats.personas), "Niños, familias, ancianos"],
+    ["Becas Otorgadas", stats.becas, "Educación técnica y superior"],
+    ["Horas de Voluntariado", stats.horas, "Actividades comunitarias"]
+  ];
+
+  doc.autoTable({
+    startY: 90,
+    head: [datos[0]],
+    body: datos.slice(1),
+    theme: "grid",
+    headStyles: { fillColor: [227, 24, 55], textColor: 255 },
+    styles: { fontSize: 12, cellPadding: 8 },
+    columnStyles: { 1: { halign: "center" } }
+  });
+
+  doc.save("Reporte_Impacto_Social_Popeyes_2025.pdf");
+  log("Reporte Anual de Impacto Social generado y descargado", "success");
+}
+
+/* ====================== INICIO ====================== */
+log("Sistema de Comunidad Popeyes Perú activado", "success");
+</script>
+</body>
+</html>

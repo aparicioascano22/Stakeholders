@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Portal Colaboración – Popeyes & Competencia</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<style>
+:root{
+  --orange:#FF6B00;
+  --red:#E31837;
+  --bg:#FFF7F0;
+  --card:#ffffff;
+  --text:#222;
+  --muted:#666;
+  --success:#10b981;
+  --error:#ef4444;
+  --shadow-sm:0 1px 3px rgba(0,0,0,0.08);
+  --shadow-md:0 10px 30px rgba(0,0,0,0.06);
+  --shadow-lg:0 20px 50px rgba(0,0,0,0.10);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:"Poppins",sans-serif;
+  background:linear-gradient(135deg,var(--bg),#fff5e6);
+  color:var(--text);
+  padding:20px;
+  min-height:100vh;
+}
+.container{
+  max-width:1300px;
+  margin:auto;
+  background:var(--card);
+  border-radius:18px;
+  box-shadow:var(--shadow-lg);
+  overflow:hidden;
+}
+header{
+  background:linear-gradient(90deg,var(--red),var(--orange));
+  color:white;
+  padding:22px 30px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  flex-wrap:wrap;
+  gap:16px;
+}
+header h1{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:2.1rem;
+  letter-spacing:1.5px;
+}
+.user-badge{
+  background:rgba(255,255,255,0.2);
+  padding:8px 18px;
+  border-radius:30px;
+  font-weight:600;
+  backdrop-filter:blur(8px);
+}
+.wrap{
+  padding:30px;
+  display:grid;
+  grid-template-columns:380px 1fr;
+  gap:30px;
+}
+.card{
+  background:white;
+  padding:26px;
+  border-radius:16px;
+  box-shadow:var(--shadow-md);
+  border:1px solid #f0f0f0;
+}
+h2{
+  font-family:'Bebas Neue',sans-serif;
+  color:var(--red);
+  font-size:1.5rem;
+  letter-spacing:1.2px;
+  margin-bottom:16px;
+}
+.btn{
+  padding:12px 20px;
+  border:none;
+  background:var(--orange);
+  color:white;
+  font-weight:600;
+  border-radius:12px;
+  cursor:pointer;
+  box-shadow:0 8px 24px rgba(255,107,0,0.2);
+  transition:all .3s;
+}
+.btn:hover{background:#ff8120;transform:translateY(-2px)}
+.btn.small{padding:8px 14px;font-size:13px}
+.btn.ghost{background:transparent;border:2px solid #ddd;color:#555}
+.btn.ghost:hover{background:#f8f8f8}
+table{width:100%;border-collapse:collapse;margin-top:12px}
+th{background:var(--red);color:white;padding:12px}
+td{padding:12px;border-bottom:1px solid #eee;text-align:center}
+tr:hover{background:#fff8f5}
+.log{
+  max-height:500px;
+  overflow:auto;
+  margin-top:20px;
+  padding-top:16px;
+  border-top:2px solid #f0f0f0;
+}
+.log-entry{
+  padding:12px 16px;
+  background:#fafafa;
+  border-radius:10px;
+  margin-bottom:10px;
+  border-left:4px solid #ddd;
+  animation:slide .4s;
+}
+.log-entry.success{border-left-color:var(--success)}
+.log-entry.error{border-left-color:var(--error)}
+.log-entry .time{font-size:11px;color:#999;margin-bottom:4px}
+#modal{display:none;position:fixed;insets:0;background:rgba(0,0,0,0.5);justify-content:center;align-items:center;z-index:999}
+.modal-card{
+  background:white;
+  width:90%;
+  max-width:500px;
+  border-radius:16px;
+  padding:30px;
+  box-shadow:0 30px 80px rgba(0,0,0,0.3);
+  animation:pop .3s;
+}
+@keyframes slide{from{opacity:0;transform:translateX(-20px)}to{opacity:1;transform:none}}
+@keyframes pop{from{transform:scale(0.9);opacity:0}to{transform:scale(1);opacity:1}}
+@media(max-width:960px){.wrap{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <div>
+      <h1>Popeyes ↔ Competencia</h1>
+      <div style="font-size:0.95rem;opacity:0.9">Portal de Colaboración QSR Perú</div>
+    </div>
+    <div class="user-badge">Competidor: <strong>KFC / Bembos / McDonald's</strong></div>
+  </header>
+
+  <div class="wrap">
+    <!-- Panel izquierdo -->
+    <aside>
+      <div class="card">
+        <h2>Reportes Compartidos</h2>
+        <button class="btn" onclick="nuevoReporte()">Simular Reporte Popeyes</button>
+        <table id="tablaReportes"><tr><th>ID</th><th>Tipo</th><th>Acción</th></tr></table>
+      </div>
+
+      <div class="card" style="margin-top:20px">
+        <h2>Solicitudes Enviadas</h2>
+        <button class="btn" onclick="nuevaSolicitud()">Enviar Solicitud</button>
+        <table id="tablaSolicitudes"><tr><th>ID</th><th>De</th><th>Detalle</th><th>Estado</th></tr></table>
+      </div>
+
+      <div class="card" style="margin-top:20px">
+        <h2>Documentos Operativos</h2>
+        <button class="btn" onclick="nuevoDoc()">Simular Documento</button>
+        <table id="tablaDocs"><tr><th>ID</th><th>Documento</th><th>Acción</th></tr></table>
+      </div>
+    </aside>
+
+    <!-- Área principal -->
+    <main class="card">
+      <h2>Actividad del Portal</h2>
+      <div class="log" id="log"></div>
+    </main>
+  </div>
+</div>
+
+<!-- Modal -->
+<div id="modal">
+  <div class="modal-card">
+    <h3 id="modalTitle" style="color:var(--red);margin-bottom:12px"></h3>
+    <p id="modalBody"></p>
+    <div style="margin-top:20px;text-align:right">
+      <button class="btn" onclick="cerrarModal()">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const { jsPDF } = window.jspdf;
+let repID=1, solID=1, docID=1;
+
+function log(msg, tipo="info"){
+  const box=document.getElementById("log");
+  const div=document.createElement("div");
+  div.className=`log-entry ${tipo}`;
+  div.innerHTML=`<span class="time">${new Date().toLocaleTimeString()}</span><div>${msg}</div>`;
+  box.prepend(div);
+}
+
+/* ====================== REPORTES ====================== */
+function nuevoReporte(){
+  const tipos=["Benchmark Ventas Perú","Comparativa Precios QSR","Análisis Tráfico Local","Tendencias Chicken 2025"];
+  const tipo=tipos[Math.floor(Math.random()*tipos.length)];
+  const id=repID++;
+  document.getElementById("tablaReportes").innerHTML+=
+    `<tr><td>${id}</td><td>${tipo}</td><td><button class="btn small" onclick="descargarReporte(${id},'${tipo}')">Descargar PDF</button></td></tr>`;
+  log(`Popeyes compartió reporte #${id}: ${tipo}`);
+}
+
+function descargarReporte(id,tipo){
+  const doc = new jsPDF();
+  doc.setFont("helvetica","bold");
+  doc.setTextColor(227,24,55);
+  doc.setFontSize(20);
+  doc.text("POPEYES LOUISIANA KITCHEN",105,20,null,null,"center");
+  doc.setFontSize(14);
+  doc.setTextColor(0,0,0);
+  doc.text(tipo,105,35,null,null,"center");
+  doc.setFontSize(10);
+  doc.text(`Reporte ID: ${id} | Fecha: ${new Date().toLocaleDateString("es-PE")}`,105,45,null,null,"center");
+
+  const datos=[
+    ["Categoría","Popeyes","KFC","Bembos","McDonald's","Promedio Mercado"],
+    ["Ventas promedio local","S/ 48,200","S/ 42,100","S/ 38,900","S/ 45,300","S/ 43,625"],
+    ["Ticket promedio","S/ 28.90","S/ 26.50","S/ 24.80","S/ 27.10","S/ 26.83"],
+    ["Tráfico diario","1,670","1,590","1,570","1,670","1,625"],
+    ["Crecimiento YoY","+15.3%","+8.7%","+6.2%","+9.1%","+9.8%"]
+  ];
+  doc.autoTable({
+    startY:55,
+    head:[datos[0]],
+    body:datos.slice(1),
+    theme:"striped",
+    styles:{fontSize:9},
+    headStyles:{fillColor:[227,24,55]}
+  });
+  doc.save(`Popeyes_Reporte_${id}_${tipo.replace(/ /g,"")}.pdf`);
+  log(`Descargado reporte #${id} (${tipo})`,"success");
+  abrirModal("Reporte descargado",`Se ha descargado el PDF: <strong>${tipo}</strong>`);
+}
+
+/* ====================== SOLICITUDES ====================== */
+function nuevaSolicitud(){
+  const competidores=["KFC","Bembos","McDonald's","Burger King"];
+  const detalles=["Benchmark de costos","Comparativa promociones","Datos de tráfico peatonal","Intercambio estándares sanitarios"];
+  const comp=competidores[Math.floor(Math.random()*competidores.length)];
+  const det=detalles[Math.floor(Math.random()*detalles.length)];
+  const id=solID++;
+  document.getElementById("tablaSolicitudes").innerHTML+=
+    `<tr><td>${id}</td><td>${comp}</td><td>${det}</td>
+     <td><button class="btn small" onclick="aprobar(${id})">Aprobar</button>
+         <button class="btn small ghost" onclick="rechazar(${id})">Rechazar</button></td></tr>`;
+  log(`${comp} envió solicitud #${id}: ${det}`);
+}
+function aprobar(id){log(`Popeyes aprobó solicitud #${id}`,"success");abrirModal("Aprobada",`Solicitud #${id} aprobada`);}
+function rechazar(id){log(`Popeyes rechazó solicitud #${id}`,"error");abrirModal("Rechazada",`Solicitud #${id} rechazada`);}
+
+/* ====================== DOCUMENTOS ====================== */
+function nuevoDoc(){
+  const docs=["Manual Operativo 2025","Protocol573 Sanitario HACCP","Guía de Calidad Proveedores","Informe Sostenibilidad"];
+  const d=docs[Math.floor(Math.random()*docs.length)];
+  const id=docID++;
+  document.getElementById("tablaDocs").innerHTML+=
+    `<tr><td>${id}</td><td>${d}</td><td><button class="btn small" onclick="descargarDoc(${id},'${d}')">Descargar PDF</button></td></tr>`;
+  log(`Popeyes compartió documento #${id}: ${d}`);
+}
+
+function descargarDoc(id,nombre){
+  const doc = new jsPDF();
+  doc.setFontSize(20);
+  doc.setTextColor(227,24,55);
+  doc.text("POPEYES",105,25,null,null,"center");
+  doc.setFontSize(16);
+  doc.text(nombre,105,40,null,null,"center");
+  doc.setFontSize(11);
+  doc.setTextColor(100);
+  doc.text(`Documento ID: ${id} | Confidencial | Fecha: ${new Date().toLocaleDateString("es-PE")}`,105,50,null,null,"center");
+
+  doc.setTextColor(0);
+  doc.setFontSize(10);
+  let y=70;
+  for(let i=1;i<=15;i++){
+    doc.text(`${i}. Este es un contenido simulado del documento operativo de Popeyes. Confidencial para uso exclusivo de colaboradores autorizados.`,20,y);
+    y+=10;
+    if(y>270){doc.addPage();y=20;}
+  }
+  doc.save(`Popeyes_${nombre.replace(/ /g,"_")}_ID${id}.pdf`);
+  log(`Descargado documento #${id}: ${nombre}`,"success");
+  abrirModal("Documento descargado",`Se ha descargado el PDF: <strong>${nombre}</strong>`);
+}
+
+/* ====================== MODAL ====================== */
+function abrirModal(t,b){
+  document.getElementById("modalTitle").textContent=t;
+  document.getElementById("modalBody").innerHTML=b;
+  document.getElementById("modal").style.display="flex";
+}
+function cerrarModal(){document.getElementById("modal").style.display="none";}
+
+// Demo inicial
+setTimeout(()=>{
+  nuevoReporte();nuevoDoc();nuevaSolicitud();
+},800);
+</script>
+</body>
+</html>

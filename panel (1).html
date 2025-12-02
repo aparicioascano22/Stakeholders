@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Popeyes — Panel Repartidor / Stakeholder</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+  :root{
+    --accent:#FF6B00; --danger:#E60012; --bg:#fff8f2; --card:#fff;
+  }
+  *{box-sizing:border-box}
+  body{font-family:"Poppins",sans-serif;margin:0;background:var(--bg);color:#222}
+  .wrap{max-width:1200px;margin:20px auto;padding:18px}
+  header{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;background:linear-gradient(90deg,var(--danger),var(--accent));border-radius:10px;color:#fff}
+  header h1{margin:0;font-family:'Bebas Neue',sans-serif}
+  main{display:grid;grid-template-columns:360px 1fr;gap:14px;margin-top:14px}
+  .card{background:var(--card);border-radius:12px;padding:14px;box-shadow:0 6px 18px rgba(0,0,0,0.06)}
+  .small{font-size:13px;color:#666}
+  input,select,textarea{padding:10px;border-radius:8px;border:1px solid #eaeaea;width:100%}
+  button{background:var(--accent);color:#fff;border:none;padding:8px 12px;border-radius:8px;cursor:pointer}
+  #map{height:520px;border-radius:10px;border:1px solid #e6e6e6}
+  .orders-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px}
+  .order-card{padding:10px;border-radius:8px;border:1px solid #f0f0f0;background:#fff}
+  .order-card .meta{font-size:13px;color:#444;margin-top:8px}
+  .log{max-height:120px;overflow:auto;border-top:1px dashed #f0f0f0;padding-top:8px;margin-top:8px}
+  .badge{display:inline-block;padding:6px 8px;border-radius:999px;font-weight:700}
+  .badge.waiting{background:#fff4e6;color:var(--accent)}
+  .badge.assigned{background:#fff0f0;color:var(--danger)}
+  .badge.ongoing{background:#f0fff0;color:#19a319}
+  .badge.delivered{background:#eef6ff;color:#2a6fb0}
+  .loginRow{display:flex;gap:8px;align-items:center}
+  .toast{position:fixed;right:18px;bottom:18px;background:#111;color:#fff;padding:10px 12px;border-radius:8px;opacity:0;transform:translateY(10px);transition:all .28s;z-index:9999}
+  .toast.show{opacity:1;transform:translateY(0)}
+  @media (max-width:980px){ main{grid-template-columns:1fr} #map{height:360px} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Panel Delivery — Popeyes (Repartidor)</h1>
+    <div style="display:flex;gap:8px;align-items:center">
+      <div class="loginRow">
+        <input id="riderName" placeholder="Tu nombre" style="width:160px">
+        <input id="riderPass" placeholder="Contraseña" type="password" style="width:160px">
+        <button onclick="login()">Entrar</button>
+        <button onclick="logout()" style="background:#fff;color:#333;border:1px solid #eee">Salir</button>
+      </div>
+    </div>
+  </header>
+  <main>
+    <!-- SIDEBAR -->
+    <aside class="card">
+      <h3 style="margin:0 0 8px">Controles rápidos</h3>
+      <div class="small">Usuario: <strong id="currRider">—</strong></div>
+      <div style="margin-top:10px">
+        <select id="filterStatus" onchange="renderOrders()">
+          <option value="all">Todos</option>
+          <option value="waiting">Esperando</option>
+          <option value="assigned">Asignados</option>
+          <option value="ongoing">En camino</option>
+          <option value="delivered">Entregados</option>
+        </select>
+      </div>
+      <div style="margin-top:12px">
+        <button onclick="refreshAll()">Actualizar</button>
+      </div>
+      <hr style="margin:12px 0">
+      <div>
+        <h4 style="margin:0 0 6px">KPIs</h4>
+        <div class="small">Pedidos totales: <strong id="kpiTotal">0</strong></div>
+        <div class="small">En camino: <strong id="kpiOngoing">0</strong></div>
+        <div style="margin-top:10px"><button onclick="exportCSV()">Exportar CSV</button></div>
+      </div>
+    </aside>
+    <!-- MAIN PANEL -->
+    <section>
+      <div class="card" style="margin-bottom:12px">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <h3 style="margin:0">Pedidos</h3>
+            <div class="small">Haz clic en "Ver" para abrir detalle</div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <input id="searchBox" placeholder="Buscar por cliente, distrito..." oninput="renderOrders()" style="width:260px">
+            <button onclick="renderOrders()">Buscar</button>
+          </div>
+        </div>
+        <div style="margin-top:12px" id="ordersContainer" class="orders-list"></div>
+      </div>
+      <div class="card">
+        <h3 style="margin:0 0 8px">Mapa (ubicaciones activas)</h3>
+        <div id="map"></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- MODAL -->
+<div id="modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.38);align-items:center;justify-content:center;z-index:1000">
+  <div style="background:#fff;border-radius:10px;padding:14px;width:92%;max-width:820px">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <h3 id="mTitle" style="margin:0">Detalle</h3>
+      <button onclick="closeModal()" style="background:#eee;color:#333">Cerrar</button>
+    </div>
+    <div id="mBody" style="margin-top:10px"></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">Mensaje</div>
+
+<script>
+/* ========== CONFIG ========== */
+const STORAGE_KEY = 'popeyes_orders_v2';
+let map, markers = {};
+let currentRider = null;
+
+/* HELPERS */
+function toast(msg){ 
+  const t = document.getElementById('toast'); 
+  t.textContent = msg; 
+  t.classList.add('show'); 
+  setTimeout(() => t.classList.remove('show'), 1800);
+}
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+function loadOrders(){ 
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
+  catch(e) { return []; }
+}
+
+function saveOrders(list){ 
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(list)); 
+  localStorage.setItem('popeyes_sync_trigger', Date.now());
+  window.dispatchEvent(new Event('orders-updated'));
+}
+
+/* INIT */
+document.addEventListener('DOMContentLoaded', () => {
+  initMap();
+  renderOrders();
+  window.addEventListener('storage', (ev) => {
+    if (ev.key === STORAGE_KEY || ev.key === 'popeyes_sync_trigger') {
+      renderOrders();
+      syncMarkers();
+      toast('Sincronizado');
+    }
+  });
+  window.addEventListener('orders-updated', () => {
+    renderOrders();
+    syncMarkers();
+  });
+});
+
+/* LOGIN / LOGOUT */
+function login(){
+  const name = document.getElementById('riderName').value.trim();
+  const pass = document.getElementById('riderPass').value.trim();
+  if (!name) return alert('Escribe tu nombre.');
+  if (pass !== 'repartidor1234') return alert('Contraseña incorrecta.');
+  currentRider = name;
+  document.getElementById('currRider').textContent = name;
+  toast('Sesión iniciada: ' + name);
+}
+
+function logout(){ 
+  currentRider = null; 
+  document.getElementById('currRider').textContent = '—'; 
+  toast('Sesión cerrada');
+}
+
+/* RENDER ORDERS */
+function renderOrders(){
+  const container = document.getElementById('ordersContainer'); 
+  container.innerHTML = '';
+  const q = document.getElementById('searchBox').value.trim().toLowerCase();
+  const filter = document.getElementById('filterStatus').value;
+  const orders = loadOrders().filter(o => 
+    (filter === 'all' || o.status === filter) &&
+    (o.cliente.toLowerCase().includes(q) || 
+     (o.distrito || '').toLowerCase().includes(q) || 
+     o.id.toLowerCase().includes(q))
+  );
+
+  orders.forEach(o => {
+    const div = document.createElement('div');
+    div.className = 'order-card';
+    div.innerHTML = `
+      <div style="display:flex;justify-content:space-between">
+        <div><strong>${escapeHtml(o.cliente)}</strong><div class="small">${o.id} • ${escapeHtml(o.distrito || '-')}</div></div>
+        <div><span class="badge ${o.status}">${(o.status || '').toUpperCase()}</span></div>
+      </div>
+      <div class="meta">Total: S/ ${Number(o.total || 0).toFixed(2)}</div>
+      <div style="margin-top:8px;display:flex;gap:8px">
+        <button onclick="openDetail('${o.id}')">Ver</button>
+        <button onclick="assignToMe('${o.id}')">Asignar a mí</button>
+      </div>`;
+    container.appendChild(div);
+  });
+
+  // KPIs
+  const all = loadOrders();
+  document.getElementById('kpiTotal').textContent = all.length;
+  document.getElementById('kpiOngoing').textContent = all.filter(x => x.status === 'ongoing').length;
+  syncMarkers();
+}
+
+/* OPEN DETAIL MODAL */
+function openDetail(id){
+  const o = loadOrders().find(x => x.id === id);
+  if (!o) return toast('Pedido no encontrado');
+
+  const body = document.getElementById('mBody');
+  body.innerHTML = `
+    <div><strong>ID:</strong> ${o.id}</div>
+    <div><strong>Cliente:</strong> ${escapeHtml(o.cliente)}</div>
+    <div><strong>Tel:</strong> ${o.telefono || '-'}</div>
+    <div><strong>Dirección:</strong> ${escapeHtml(o.calle || '-')} ${o.numero ? ' N°' + o.numero : ''} — ${escapeHtml(o.distrito || '-')}</div>
+    <div style="margin-top:8px"><strong>Items:</strong>
+      <ul>${(o.items || []).map(it => `<li>${escapeHtml(it.nombre)} — S/ ${Number(it.precio || 0).toFixed(2)}</li>`).join('')}</ul>
+    </div>
+    <div style="margin-top:8px"><strong>Estado:</strong> <span id="mStatus">${o.status}</span></div>
+    <div style="margin-top:8px;display:flex;gap:8px">
+      <button onclick="setStatus('${o.id}','assigned')">Marcar ASIGNADO</button>
+      <button onclick="setStatus('${o.id}','ongoing')">Marcar EN CAMINO</button>
+      <button onclick="setStatus('${o.id}','delivered')">Marcar ENTREGADO</button>
+    </div>
+    <div style="margin-top:10px">
+      <label>Nota / incidencia</label>
+      <textarea id="mNote" rows="2" style="width:100%;"></textarea>
+      <div style="margin-top:8px"><button onclick="addNote('${o.id}')">Añadir nota</button></div>
+    </div>
+    <div class="log"><strong>Registro:</strong><div id="mLog"></div></div>
+  `;
+
+  // Log
+  const logDiv = document.getElementById('mLog');
+  logDiv.innerHTML = '';
+  (o.log || []).forEach(l => {
+    const d = document.createElement('div');
+    d.textContent = `${new Date(l.t).toLocaleString()} — ${l.e}`;
+    logDiv.appendChild(d);
+  });
+
+  document.getElementById('mTitle').textContent = `Pedido ${o.id}`;
+  document.getElementById('modal').style.display = 'flex';
+}
+
+function closeModal(){
+  document.getElementById('modal').style.display = 'none';
+}
+
+/* ASIGNAR A MÍ */
+function assignToMe(id){
+  if (!currentRider) {
+    if (!confirm('No iniciaste sesión. ¿Asignar con nombre genérico?')) return;
+  }
+  const orders = loadOrders();
+  const o = orders.find(x => x.id === id);
+  if (!o) return;
+  o.rider = currentRider || 'Sin nombre';
+  o.status = 'assigned';
+  o.log = o.log || [];
+  o.log.push({ t: new Date().toISOString(), e: `Asignado a ${o.rider}` });
+  saveOrders(orders);
+  renderOrders();
+  closeModal();
+  toast('Repartidor asignado');
+}
+
+/* CAMBIAR ESTADO */
+function setStatus(id, status){
+  const orders = loadOrders();
+  const o = orders.find(x => x.id === id);
+  if (!o) return;
+  o.status = status;
+  o.log = o.log || [];
+  o.log.push({ t: new Date().toISOString(), e: `Estado: ${status}` });
+  saveOrders(orders);
+  renderOrders();
+  syncMarkers();
+  openDetail(id); // Recarga modal
+  toast('Estado actualizado');
+}
+
+/* AÑADIR NOTA */
+function addNote(id){
+  const note = document.getElementById('mNote').value.trim();
+  if (!note) return;
+  const orders = loadOrders();
+  const o = orders.find(x => x.id === id);
+  if (!o) return;
+  o.log = o.log || [];
+  o.log.push({ t: new Date().toISOString(), e: `Nota: ${note}` });
+  saveOrders(orders);
+  document.getElementById('mNote').value = '';
+  openDetail(id); // Recarga modal
+  toast('Nota añadida');
+}
+
+/* MAPA */
+function initMap(){
+  map = L.map('map').setView([-12.0464, -77.0428], 12);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(map);
+  syncMarkers();
+}
+
+function syncMarkers(){
+  const orders = loadOrders();
+  const currentIds = new Set(orders.map(o => o.id));
+
+  // Eliminar marcadores obsoletos
+  Object.keys(markers).forEach(id => {
+    if (!currentIds.has(id)) {
+      map.removeLayer(markers[id]);
+      delete markers[id];
+    }
+  });
+
+  // Añadir/actualizar marcadores
+  orders.forEach(o => {
+    if (!o.coords || !o.coords.lat || !o.coords.lng) return;
+    const key = o.id;
+    const iconHtml = `<div style="background:#fff;padding:6px;border-radius:8px;border:2px solid ${o.status==='delivered'?'#9ab':'#ffb68a'}">
+      <strong style="font-size:12px">${o.id}</strong>
+      <div style="font-size:11px">${escapeHtml(o.rider || '—')}</div>
+    </div>`;
+    const icon = L.divIcon({ className: 'order-marker', html: iconHtml, iconSize: [100, 40] });
+
+    if (markers[key]) {
+      markers[key].setLatLng([o.coords.lat, o.coords.lng]);
+    } else {
+      const m = L.marker([o.coords.lat, o.coords.lng], { icon }).addTo(map);
+      m.bindPopup(`<b>${o.id}</b><br>${escapeHtml(o.cliente)}<br>${escapeHtml(o.calle || '-')}<br><small>${o.status}</small>`);
+      m.on('click', () => openDetail(o.id));
+      markers[key] = m;
+    }
+  });
+}
+
+/* EXPORTAR CSV */
+function exportCSV(){
+  const orders = loadOrders();
+  const rows = [['ID','Cliente','Rider','Estado','Total','Dirección','Fecha']];
+  orders.forEach(o => {
+    rows.push([
+      o.id,
+      o.cliente,
+      o.rider || '',
+      o.status,
+      o.total,
+      `${o.calle || ''} ${o.numero || ''} • ${o.distrito || ''}`,
+      o.createdAt
+    ]);
+  });
+  const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'reporte_delivery.csv';
+  a.click();
+}
+
+/* REFRESH */
+function refreshAll(){
+  renderOrders();
+  syncMarkers();
+  toast('Refrescado');
+}
+
+/* ACTUALIZAR MARCADORES CADA 12 SEGUNDOS */
+setInterval(syncMarkers, 12000);
+</script>
+</body>
+</html>

@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Gestión de Inventario — Simulación</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue:wght@400&display=swap" rel="stylesheet">
+<style>
+:root{
+    --accent-red:#E23A2B;
+    --accent-orange:#FF7A2D;
+    --accent-yellow:#FFD66B;
+    --text-dark:#222;
+    --bg-soft:#FFF7F1;
+    --card:#ffffff;
+}
+*{box-sizing:border-box}
+body{
+    margin:0;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    background: linear-gradient(135deg, var(--bg-soft) 0%, #fff5e6 100%);
+    color:var(--text-dark);
+    padding:28px 16px;
+    display:flex;
+    justify-content:center;
+    align-items:flex-start;
+}
+.container{
+    width:95%;
+    max-width:1000px;
+    background:var(--card);
+    border-radius:14px;
+    box-shadow:0 18px 50px rgba(0,0,0,0.12);
+    overflow:hidden;
+}
+header{
+    background: linear-gradient(90deg,var(--accent-red), var(--accent-orange));
+    color:white;
+    padding:16px 20px;
+    display:flex;
+    align-items:center;
+    gap:14px;
+}
+.header-logo {
+    width:52px;height:52px;border-radius:10px;
+    display:flex;align-items:center;justify-content:center;
+    font-weight:bold;font-family:'Bebas Neue',cursive;font-size:1rem;
+    box-shadow:0 6px 18px rgba(0,0,0,0.12);
+}
+header h1{ margin:0; font-family:'Bebas Neue',cursive; font-size:1.25rem; }
+header p{ margin:0; opacity:0.95; font-size:0.9rem; }
+
+.main {
+    display:grid;
+    grid-template-columns: 1fr 320px;
+    gap:18px;
+    padding:18px;
+}
+.card {
+    background:var(--card);
+    border-radius:12px;
+    border:1px solid #f2e6e1;
+    padding:16px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.04);
+}
+.card h2 { margin:0 0 10px 0; font-family:'Bebas Neue',cursive; color:var(--accent-red); font-size:1.15rem; }
+.lead { margin:6px 0 12px 0; color:#444; line-height:1.45 }
+
+.table {
+    width:100%;
+    border-collapse:collapse;
+    margin-top:8px;
+}
+.table th, .table td {
+    padding:10px 8px;
+    text-align:left;
+    border-bottom:1px solid #f5efe9;
+    font-size:0.95rem;
+    color:#333;
+}
+.table th { font-weight:700; color:#555; font-size:0.88rem; }
+
+.input-num {
+    width:70px;
+    padding:6px 8px;
+    border-radius:8px;
+    border:1px solid #eee;
+    font-weight:700;
+}
+.controls { display:flex; gap:10px; margin-top:12px; flex-wrap:wrap; }
+.btn {
+    background:var(--accent-orange);
+    color:white;
+    padding:10px 14px;
+    border:none;
+    border-radius:999px;
+    font-weight:800;
+    cursor:pointer;
+    box-shadow:0 8px 24px rgba(255,122,45,0.18);
+}
+.btn.ghost { background:transparent; color:#444; border:1px solid #eee; box-shadow:none; }
+.btn.warn { background:var(--accent-red); box-shadow:0 8px 24px rgba(226,58,43,0.18); }
+
+.status {
+    padding:10px;
+    border-radius:10px;
+    background:#fff8f0;
+    border:1px solid rgba(255,122,45,0.06);
+    margin-top:12px;
+    color:var(--accent-red);
+    font-weight:800;
+}
+.branch {
+    margin-top:12px;
+    padding:12px;
+    border-radius:10px;
+    background:#fff8f0;
+    border:1px solid rgba(255,122,45,0.06);
+}
+.branch h3 { margin:0 0 8px 0; color:var(--accent-red); font-size:1rem }
+
+@media (max-width:900px) {
+    .main { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <div class="header-logo">INV</div>
+        <div>
+            <h1>Inventario — Simulación</h1>
+            <p>Simula consumo de insumos y verifica el stock disponible</p>
+        </div>
+    </header>
+
+    <main class="main">
+        <!-- Panel principal -->
+        <section class="card">
+            <h2>Inventario actual</h2>
+            <p class="lead">Ingresa la cantidad a consumir, aplica el consumo y compara el inventario.</p>
+
+            <table class="table" id="inv-table">
+                <thead>
+                    <tr>
+                        <th>Insumo</th>
+                        <th>Stock</th>
+                        <th>Stock mínimo</th>
+                        <th>Consumir</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+
+            <div class="controls">
+                <button class="btn" id="apply-consumption">Aplicar consumo</button>
+                <button class="btn ghost" id="compare">Comparar inventario</button>
+                <button class="btn ghost" id="reset-inv">Restaurar inventario</button>
+            </div>
+
+            <div id="result-branch" style="display:none" class="branch"></div>
+        </section>
+
+        <!-- Panel lateral -->
+        <aside class="card">
+            <h2>Estado</h2>
+            <div id="status-text" class="status">Listo</div>
+
+            <div style="margin-top:12px">
+                <strong>Acciones rápidas</strong>
+                <div style="display:flex; gap:8px; margin-top:10px; flex-wrap:wrap">
+                    <button class="btn ghost" id="action-notify">Notificar gerente</button>
+                    <button class="btn ghost" id="action-alert">Generar alerta</button>
+                    <button class="btn ghost" id="action-order">Orden proveedor</button>
+                </div>
+            </div>
+
+            <div style="margin-top:16px">
+                <strong>Resumen</strong>
+                <ul style="padding-left:18px; margin-top:8px; color:#444">
+                    <li id="summary-total-items">Items: —</li>
+                    <li id="summary-low-items">Items bajo mínimo: —</li>
+                </ul>
+            </div>
+        </aside>
+    </main>
+</div>
+
+<script>
+const initialInventory = [
+    { id: 'harina', nombre: 'Harina (kg)', stock: 50, minStock: 10 },
+    { id: 'aceite', nombre: 'Aceite (L)', stock: 30, minStock: 8 },
+    { id: 'pan', nombre: 'Pan (unid)', stock: 120, minStock: 20 },
+    { id: 'queso', nombre: 'Queso (kg)', stock: 12, minStock: 4 },
+    { id: 'pollo', nombre: 'Pollo (kg)', stock: 40, minStock: 12 },
+    { id: 'salsa', nombre: 'Salsa (L)', stock: 25, minStock: 5 }
+];
+
+let inventory = JSON.parse(JSON.stringify(initialInventory));
+const invTableBody = document.querySelector('#inv-table tbody');
+const statusText = document.getElementById('status-text');
+const resultBranch = document.getElementById('result-branch');
+const summaryTotalItems = document.getElementById('summary-total-items');
+const summaryLowItems = document.getElementById('summary-low-items');
+
+function renderInventory(){
+    invTableBody.innerHTML = '';
+    inventory.forEach(item => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${item.nombre}</td>
+            <td><strong id="stock-${item.id}">${item.stock}</strong></td>
+            <td>${item.minStock}</td>
+            <td><input type="number" min="0" value="0" class="input-num" id="consume-${item.id}"></td>
+            <td><button class="btn ghost" data-id="${item.id}">Aplicar</button></td>
+        `;
+        invTableBody.appendChild(tr);
+    });
+    updateSummary();
+}
+
+function applySingleConsumption(id){
+    const input = document.getElementById(`consume-${id}`);
+    const toConsume = Math.max(0, Math.floor(Number(input.value) || 0));
+    if (toConsume === 0) return;
+    const item = inventory.find(i => i.id === id);
+    const before = item.stock;
+    item.stock = Math.max(0, item.stock - toConsume);
+    document.getElementById(`stock-${item.id}`).textContent = item.stock;
+    input.value = 0;
+    statusText.textContent = `Consumido ${toConsume} de ${item.nombre}`;
+    updateSummary();
+}
+
+function applyAllConsumptions(){
+    inventory.forEach(item => {
+        const input = document.getElementById(`consume-${item.id}`);
+        const toConsume = Math.max(0, Math.floor(Number(input.value) || 0));
+        if (toConsume > 0) {
+            item.stock = Math.max(0, item.stock - toConsume);
+            document.getElementById(`stock-${item.id}`).textContent = item.stock;
+            input.value = 0;
+        }
+    });
+    statusText.textContent = "Consumo aplicado";
+    updateSummary();
+}
+
+function compareInventory(){
+    const lowItems = inventory.filter(i => i.stock < i.minStock);
+    if (lowItems.length === 0){
+        statusText.textContent = 'Inventario suficiente';
+        resultBranch.style.display = 'block';
+        resultBranch.innerHTML = `
+            <h3>Inventario Suficiente</h3>
+            <ol>
+                <li>Continuar operaciones normales</li>
+                <li>Notificar al gerente que todo está en orden</li>
+                <li>Monitoreo continuo</li>
+            </ol>`;
+    } else {
+        statusText.textContent = 'Inventario insuficiente';
+        resultBranch.style.display = 'block';
+        resultBranch.innerHTML = `
+            <h3>Reposición necesaria</h3>
+            <ul>${lowItems.map(i => `<li>${i.nombre}: ${i.stock} (mínimo ${i.minStock})</li>`).join('')}</ul>
+            <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">
+                <button class="btn warn" id="btn-alert">Generar alerta</button>
+                <button class="btn" id="btn-order">Orden automática</button>
+                <button class="btn ghost" id="btn-restock">Simular llegada</button>
+            </div>`;
+        document.getElementById('btn-alert').onclick = () => statusText.textContent = 'Alerta enviada al gerente';
+        document.getElementById('btn-order').onclick = () => statusText.textContent = 'Orden enviada al proveedor';
+        document.getElementById('btn-restock').onclick = () => {
+            lowItems.forEach(it => {
+                it.stock += (it.minStock * 2 - it.stock);
+                document.getElementById(`stock-${it.id}`).textContent = it.stock;
+            });
+            statusText.textContent = 'Reposición simulada';
+            compareInventory();
+        };
+    }
+    updateSummary();
+}
+
+function updateSummary(){
+    summaryTotalItems.textContent = `Items: ${inventory.length}`;
+    const lowCount = inventory.filter(i => i.stock < i.minStock).length;
+    summaryLowItems.textContent = `Items bajo mínimo: ${lowCount}`;
+}
+
+function resetInventory(){
+    inventory = JSON.parse(JSON.stringify(initialInventory));
+    renderInventory();
+    resultBranch.style.display = 'none';
+    statusText.textContent = 'Inventario restaurado';
+}
+
+invTableBody.addEventListener('click', e=>{
+    if (e.target.matches('button[data-id]')) applySingleConsumption(e.target.dataset.id);
+});
+document.getElementById('apply-consumption').onclick = applyAllConsumptions;
+document.getElementById('compare').onclick = compareInventory;
+document.getElementById('reset-inv').onclick = resetInventory;
+document.getElementById('action-notify').onclick = () => statusText.textContent='Gerente notificado';
+document.getElementById('action-alert').onclick = () => statusText.textContent='Alerta generada';
+document.getElementById('action-order').onclick = () => statusText.textContent='Orden enviada';
+
+renderInventory();
+statusText.textContent='Listo';
+</script>
+</body>
+</html>
