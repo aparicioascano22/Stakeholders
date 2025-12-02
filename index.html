@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Stakeholders – Popeyes</title>
+
+    <!-- Fuente estilo Popeyes -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            margin: 0;
+            font-family: "Poppins", sans-serif;
+            background-color: #fff7ec;
+            color: #7a3b00;
+        }
+
+        nav {
+            background-color: #ff7a00;
+            padding: 15px 25px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        nav h1 {
+            margin: 0;
+            color: white;
+            font-size: 26px;
+            font-weight: 800;
+            letter-spacing: 1px;
+        }
+
+        nav a {
+            color: white;
+            margin-left: 20px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+
+        nav a:hover {
+            color: #ffe8cc;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 60px auto;
+            text-align: center;
+            padding: 20px;
+        }
+
+        h2 {
+            font-size: 30px;
+            color: #d44b00;
+            font-weight: 800;
+            margin-bottom: 10px;
+        }
+
+        p {
+            font-size: 18px;
+            margin-bottom: 30px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        a.card {
+            background-color: #ff8c1a;
+            padding: 18px;
+            text-decoration: none;
+            font-weight: 600;
+            color: white;
+            border-radius: 14px;
+            box-shadow: 0 5px 12px rgba(0,0,0,0.2);
+            transition: transform 0.25s, box-shadow 0.25s;
+            display: block;
+        }
+
+        a.card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 18px rgba(0,0,0,0.25);
+            background-color: #e76a00;
+        }
+
+        .fade {
+            opacity: 0;
+            animation: fadeIn 1.1s forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0px); }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- NAVBAR -->
+    <nav>
+        <h1>Popeyes – Stakeholders</h1>
+        <div>
+            <a href="#">Inicio</a>
+            <a href="#codigos">Códigos</a>
+            <a href="https://github.com" target="_blank">GitHub</a>
+        </div>
+    </nav>
+
+    <div class="container fade">
+        <h2>Acceso a los Códigos</h2>
+        <p>Selecciona cualquiera de los módulos para visualizar su archivo correspondiente.</p>
+
+        <div id="codigos" class="grid">
+
+            <!-- BOTONES RENOMBRADOS -->
+            <a class="card" href="Banco.html">Web de Banca para Popeyes</a>
+            <a class="card" href="Bancoo.html">Web Portal de Banco</a>
+            <a class="card" href="Competencia (1).html">Web Portal de la Competencia</a>
+            <a class="card" href="Pedido (1).html">Web Portal de Pedidos</a>
+            <a class="card" href="panel (1).html">Web Panel de Pedidos para Delivery</a>
+            <a class="card" href="Social definitivo (1).html">Web Portal Social</a>
+            <a class="card" href="gobierno (1).html">Web Portal Gubernamental</a>
+            <a class="card" href="inventario (1).html">Web Panel de Inventario</a>
+            <a class="card" href="vacaciones (1).html">Web Panel de Vacaciones (RR.HH)</a>
+
+        </div>
+    </div>
+
+</body>
+</html>
